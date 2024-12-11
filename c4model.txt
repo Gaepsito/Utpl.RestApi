@@ -1,91 +1,115 @@
-workspace "Plataforma de comercio electronico" {
+workspace "Empresa de Renta de Autos para Conductores de Uber" {
 
     !identifiers hierarchical
     
-    description "Una API para gestionar productos"
+    description "Diagrama de interacción de componentes para una empresa de renta de autos para conductores de Uber"
     
     model {
-        pCliente = person "Usuario final"
-        pAdministrador = person "Administrador del comercio"
-        sErp = softwareSystem "ERP EMPRESARIAL"
-        ssProductos = softwareSystem "Plataforma de gestión de comercio" {
+        pDriver = person "Conductor de Uber"
+        pAdmin = person "Administrador de la Plataforma"
+        sRentalSystem = softwareSystem "Sistema de Gestión de Renta de Autos" {
             
-            
-            wepAppGestion = container "Web de gestión" {
-                tags "AppWeb"
+            portalManagement = container "Portal de Gestión" {
+                tags "Portal"
                 technology "SPA Angular 16"
-                description "Sitio web para la administración de parámertros del sistema"
+                description "Aplicaciones para la administración de la plataforma de renta de autos"
+                webComponent = component "Web de Administración" "Sitio web para administrar la plataforma" "Compatibilidad con navegadores web"
+                appComponent = component "App de Administración" "App móvil para administrar la plataforma" "APP para Android e iOS"
             }
             
-            wepAppCompras = container "Web de compras" {
-                tags "AppWeb"
+            portalBooking = container "Portal de Reservas" {
+                tags "Portal"
                 technology "SPA Angular 16"
-                description "Sitio web para solicitar ordenes"
+                description "Aplicaciones para realizar reservas de autos"
+                webComponent = component "Web de Reservas" "Sitio web para reservar autos" "Web para PC/Laptop"
+                appComponent = component "App de Reservas" "App móvil para reservar autos" "Aplicación para celular/tablet"
             }
             
-            apiCompras = container "Api de compras" {
-                tags "Api"
+            apiInventory = container "API de Inventario" {
+                tags "API"
                 technology "Python 3"
-                description "API REST para la consulta y envío de información a la base de datos"
-                seguridadComponent = component "Componente de Seguridad" "Provides functionality related to signing in, changing passwords, etc." "Fast Security / Python 3"
-                emailComponent = component "E-mail Component" "Envia notificaciones a los clientes" "Python Email"
-                telegramComponent = component "Telegram Component" "Envia notificaciones a los clientes por telegram" "Python Notified"
+                description "API REST para la consulta y actualización de información de inventario a la base de datos"
+                securityComponent = component "Componente de Seguridad" "Establece el cifrado entre las bases durante los procesos del API" "Fast Security / Python 3"
             }
             
-            db = container "Base de datos" {
+            apiBookings = container "API de Reservas" {
+                tags "API"
+                technology "Python 3"
+                description "API REST para la consulta y actualización de información de reservas a la base de datos"
+                securityComponent = component "Componente de Seguridad" "Establece el cifrado entre las bases durante los procesos del API" "Fast Security / Python 3"
+            }
+            
+            apiUsers = container "API de Usuarios" {
+                tags "API"
+                technology "Python 3"
+                description "API REST para la consulta y actualización de información de usuarios a la base de datos"
+                securityComponent = component "Componente de Seguridad" "Establece el cifrado entre las bases durante los procesos del API" "Fast Security / Python 3"
+            }
+            
+            db = container "Base de Datos" {
                 tags "Database"
-                technology "Oracle 20g"
+                technology "MySQL"
+                description "Base de datos para almacenar información de la plataforma"
             }
         }
-
-        pCliente -> ssProductos.wepAppCompras "Interactúa con la app para crear, leer, actualizar y eliminar órdenes"
-        pAdministrador -> ssProductos.wepAppGestion "Configura la API y monitorea su funcionamiento"
-        sErp -> ssProductos.apiCompras "Interactúa con la app para gestion de inventario"
         
-        ssProductos.apiCompras -> ssProductos.db "Lee y escribe informacion a"
-        ssProductos.wepAppGestion -> ssProductos.apiCompras "Lee / escribe a " "https"
-        ssProductos.wepAppCompras -> ssProductos.apiCompras "Lee / escribe a " "https"
+        pDriver -> portalBooking.webComponent "Realiza reservas"
+        pDriver -> portalBooking.appComponent "Realiza reservas"
+        pAdmin -> portalManagement.webComponent "Administra la plataforma"
+        pAdmin -> portalManagement.appComponent "Administra la plataforma"
+        portalBooking.webComponent -> apiInventory "Consulta y actualiza inventario"
+        portalBooking.appComponent -> apiInventory "Consulta y actualiza inventario"
+        portalBooking.webComponent -> apiBookings "Consulta y actualiza reservas"
+        portalBooking.appComponent -> apiBookings "Consulta y actualiza reservas"
+        portalManagement.webComponent -> apiUsers "Consulta y actualiza usuarios"
+        portalManagement.appComponent -> apiUsers "Consulta y actualiza usuarios"
+        apiInventory -> db "Consulta y actualiza información de inventario"
+        apiBookings -> db "Consulta y actualiza información de reservas"
+        apiUsers -> db "Consulta y actualiza información de usuarios"
     }
-
+    
     views {
-        systemContext ssProductos {
+        systemContext sRentalSystem {
             include *
             autolayout lr
+            animation pDriver, pAdmin
         }
-
-        container ssProductos {
+        
+        container sRentalSystem {
             include *
             autolayout lr
+            animation portalManagement, portalBooking, apiInventory, apiBookings, apiUsers, db
         }
         
-        component ssProductos.apiCompras {
+        component portalManagement {
             include *
             autolayout lr
-        }
-
-        styles {
-            element "Element" {
-                color #ffffff
-            }
-            element "Person" {
-                background #741eba
-                shape person
-            }
-            element "Software System" {
-                background #8723d9
-            }
-            element "Container" {
-                background #9a28f8
-            }
-            element "Database" {
-                shape cylinder
-            }
+            animation webComponent, appComponent
         }
         
+        component portalBooking {
+            include *
+            autolayout lr
+            animation webComponent, appComponent
+        }
         
+        theme default
     }
-
-    configuration {
-        scope softwaresystem
+    
+    styles {
+        element "Portal" {
+            background #1168bd
+            color #ffffff
+        }
+        
+        element "API" {
+            background #08427b
+            color #ffffff
+        }
+        
+        element "Database" {
+            background #f5da81
+            color #000000
+        }
     }
 }
