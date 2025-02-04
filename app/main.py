@@ -12,6 +12,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
+from notificaciones import enviar_correo, enviar_mensaje_slack, enviar_mensaje_telegram  
+# Importar las funciones
 
 app = FastAPI()
 
@@ -41,9 +43,12 @@ async def leer_carros():
 # El parámetro "response_model" especifica que la respuesta será un objeto "Car".
 @app.post("/cars", response_model=Car)
 async def crear_carro(car: Car):
-    cars_db.append(car)  # Agrega el carro a la lista.
+    cars_db.append(car)
+    # Llamar a la función de notificación por correo electrónico y Slack/Telegram
+    enviar_correo('destinatario@example.com', f'Se ha creado un nuevo carro: {car.make} {car.model}')
+    enviar_mensaje_slack('C1234567890', f'Se ha creado un nuevo carro: {car.make} {car.model}')
+    enviar_mensaje_telegram('123456789', f'Se ha creado un nuevo carro: {car.make} {car.model}')
     return car
-
 # Ruta para actualizar un carro existente por su ID.
 # El parámetro "response_model" especifica que la respuesta será un objeto "Car".
 @app.put("/cars/{car_id}", response_model=Car)
